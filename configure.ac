@@ -5,6 +5,7 @@ AC_PREREQ([2.69])
 AC_INIT([crypt4gh], [1.0], [silverdaz@gmail.com])
 
 AC_CONFIG_SRCDIR([main.c])
+AC_CONFIG_HEADER([config.h])
 
 # AC_CONFIG_AUX_DIR([build-aux])
 
@@ -21,7 +22,7 @@ AC_SEARCH_LIBS([crypt4gh_c4gh_public_key_from_blob], [c4gh-keys], [], [AC_ERROR(
 
 # Checks for header files.
 AC_CHECK_HEADERS([\
-	stddef.h \
+	sys/types.h \
 	stdint.h \
 	stdlib.h \
 	stdio.h \
@@ -31,19 +32,65 @@ AC_CHECK_HEADERS([\
 	string.h \
 	errno.h \
 	sys/stat.h \
-	sys/types.h \
 ])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
-AC_TYPE_OFF_T
-AC_TYPE_SIZE_T
-AC_TYPE_UINT32_T
-AC_TYPE_UINT8_T
 
-# Checks for library functions.
-AC_CHECK_FUNCS([memcpy strerror])
-AC_FUNC_MALLOC
+dnl # Checks for library functions.
+dnl AC_CHECK_FUNCS([memcpy strerror])
+dnl AC_FUNC_MALLOC
+
+#######################################################
+
+# Check for  long long datatypes
+AC_TYPE_OFF_T
+AC_CHECK_TYPES([unsigned long long])
+
+AC_CHECK_SIZEOF([int])
+
+# More checks for data types
+AC_CACHE_CHECK([for uintXX_t types], ac_cv_have_uintxx_t, [
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <sys/types.h>
+			]], [[
+	uint8_t a;
+	uint32_t c;
+	a = b = c = 1;
+			]])],
+		[ ac_cv_have_uintxx_t="yes" ], [ ac_cv_have_uintxx_t="no"
+		])
+	])
+if test "x$ac_cv_have_uintxx_t" = "xyes" ; then
+	AC_DEFINE([HAVE_UINTXX_T], [1],
+		[define if you have uintxx_t data type])
+fi
+
+if (test -z "$have_uintxx_t" && \
+	   test "x$ac_cv_header_stdint_h" = "xyes")
+then
+    AC_MSG_CHECKING([for uintXX_t types in stdint.h])
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <stdint.h> ]],
+	[[ uint8_t a; uint32_t b; a = b = 1;]])],
+		[
+			AC_DEFINE([HAVE_UINTXX_T])
+			AC_MSG_RESULT([yes])
+		], [ AC_MSG_RESULT([no])
+	])
+fi
+
+AC_CACHE_CHECK([for size_t], ac_cv_have_size_t, [
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <sys/types.h> ]],
+	[[ size_t foo; foo = 1235; ]])],
+	[ ac_cv_have_size_t="yes" ], [ ac_cv_have_size_t="no"
+	])
+])
+if test "x$ac_cv_have_size_t" = "xyes" ; then
+	AC_DEFINE([HAVE_SIZE_T], [1], [define if you have size_t data type])
+fi
+
+#######################################################
+
 
 dnl # Allow user to specify debug level
 dnl AC_ARG_WITH([debug],
@@ -55,6 +102,8 @@ dnl 		elif test "x$withval" == "xyes"; then
 dnl 			CFLAGS="$CFLAGS -g -DDEBUG=1"
 dnl 		fi
 dnl 	])
+
+#######################################################
 
 AC_CONFIG_FILES([Makefile])
 

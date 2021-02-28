@@ -1,9 +1,6 @@
 #ifndef __CRYPT4GH_DEBUG_H_INCLUDED__
 #define __CRYPT4GH_DEBUG_H_INCLUDED__
 
-/* #include <stdlib.h> */
-/* #include <stddef.h> */
-/* #include <unistd.h> */
 #include <stdint.h>
 
 #ifndef _XOPEN_SOURCE
